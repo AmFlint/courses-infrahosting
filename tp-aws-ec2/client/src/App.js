@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import * as axios from 'axios';
 import './App.css';
@@ -10,24 +10,33 @@ const fetchMessages = async () => {
   return response.data;
 }
 
-function App() {
-  const [messages, setMessages] = useState([]);
-  fetchMessages()
-    .then(messages => setMessages(messages))
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Messages:</h1>
-        <ul>
-          {
-            messages.map(message => (
-              <li>{message.content || ''}</li>
-            ))
-          }
-        </ul>
-      </header>
-    </div>
-  );
+class App extends React.Component {
+  state = {
+    messages: []
+  };
+
+
+  componentDidMount() {
+    fetchMessages()
+      .then(messages => this.setState({ messages }))
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <h1>Messages:</h1>
+          <ul>
+            {
+              this.state.messages.map(message => (
+                <li>{message.content || ''}</li>
+              ))
+            }
+          </ul>
+        </header>
+      </div>
+    );
+  }
 }
 
 export default App;
