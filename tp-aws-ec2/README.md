@@ -287,26 +287,15 @@ Afin de vérifier que le site est en ligne, veuillez raffraichir votre page du n
 
 Nous allons maintenant configurer un `virtualhost` pour nginx, de sorte à configurer un `nom de domaine` pour notre site (ici, nous allons simuler l'utilisation d'un NDD pour ne pas avoir à en acheter un).
 
-Je vous invite dans un premier temps à simplement dupliquer la configuration `/etc/nginx/sites-enabled/default`:
+Je vous invite dans un premier temps à mettre à jours la configuration `/etc/nginx/sites-enabled/default`:
 ```bash
-# Sudo parce que ce fichier de configuration ne peut être modifié que par l'utilisateur root
-sudo mv /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/my-zelda.com
+# Sudo parce que ce fichier de configuration ne peut être modifié que par l'utilisateur root (dans un dossier priviliégié)
+sudo vim /etc/nginx/sites-enabled/default
 ```
-**Maintenant vous allez pouvoir ajouter un nom de domaine à votre `virtualhost`, en modifiant le paramètre `server_name` => `my-zelda.com`**
 
 Une fois la modification effectuée, vous pouvez recharger la configuration du serveur web comme vu précédemment, sinon les changements ne seront pas appliqués. **Assurez vous qu'aucune erreur ne s'affiche, sinon suivez les logs à l'aide de la commande journalctl**.
 
-Pour imiter un `nom de domaine`, il est possible d'éditer le fichier `/etc/hosts` sur votre ordinateur (en local), pour manuellement assigner un nom de domaine à une adresse IP (vous vous rendrez compte que c'est dans ce fichier que `localhost` est lié à `127.0.0.1`, soit l'adresse de votre machine).
-
-Par exemple:
-```bash
-sudo vim /etc/hosts
-# Ajoutez l'adresse IP de votre instance, ici mon instance est 34.253.212.40
-34.253.212.40 my-zelda.com
-```
-Lorsque notre système va effectuer une résolution DNS, il va vérifier si un NDD a été assigné manuellement dans le fichier `/etc/hosts`.
-
-Vous pouvez vérifier que votre Serveur Web répond correctement en allant sur http://my-zelda.com dans votre navigateur, vous devriez toujours voir le site zelda.
+Ouvrez le site dans votre navigateur, vous devriez voir le site Zelda.
 
 ## Deuxième Partie: Déployer une application (Front, Back, Base de donnée):
 
