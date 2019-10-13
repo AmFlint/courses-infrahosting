@@ -3,7 +3,7 @@
 ## Pré-requis
 
 - Assurez vous d'avoir [créer un compte sur Heroku.com](https://heroku.com), je vous invite à utiliser vos compte `GitHub Education` pour bénéficier de [différents avantages sur Heroku pour ce TP et sur vos projets persos](https://www.heroku.com/github-students).
-- Installez la [ligne de commande heroku](https://devcenter.heroku.com/articles/heroku-cli) pour piloter vos applications.
+- Installez la [ligne de commande heroku](https://devcenter.heroku.com/articles/heroku-cli) pour piloter vos applications (Vous pouvez vous passez de cette CLI en utilisant exclusivement la console Heroku si vous préférez).
 - Téléchargez (ou clonez) ce repository sur votre machine, car nous allons utiliser des applications et exemples présents dans ce repo.
 - [client MySQL installé sur votre machine](https://dev.mysql.com/doc/refman/8.0/en/mysql.html)
 
@@ -140,3 +140,35 @@ Une fois votre base de donnée importée, vous allez pouvoir vérifier que votre
 ]
 ```
 Bien sur, si vous modifiez la base (supprimez ou ajouter un message par exemple), vous verrez que ce résultat changera, puisque notre API est à présent connectée à la base.
+
+## Déployer un Front-end
+
+Ici, nous allons voir comment déployer une [application front (React)](./client).
+
+Vous avez déjà vu cette application dans le TP précédent sur AWS.
+
+Elle va simplement se connecter à une API configurée par une variable d'environnement, et afficher une liste de messages exposée par cette API.
+
+Nous allons donc connecter notre application FRONT avec l'API que nous avons déployée dans la partie précédente.
+
+Vous allez donc créer une seconde [application Heroku](https://dashboard.heroku.com/apps), soit:
+- depuis [le dashboard](https://dashboard.heroku.com/apps)
+- Depuis votre ligne de commande avec la CLI heroku (heroku create)
+
+[Celon l'article officiel du blog d'Heroku](https://blog.heroku.com/deploying-react-with-zero-configuration), il n'a jamais été aussi simple de déployer une application React sur leur service.
+
+**Côté configuration, l'application utilise les variables d'environnement suivantes**:
+- `REACT_APP_BACKEND_URL`: Lien HTTP vers l'API déployée (exemple `https://mon-application.heroku.com`).
+
+Ces variables devront être configurées via le système de `config` proposé par Heroku:
+- Soit avec la CLI: `heroku config:set -a <nom-de-lapp> VARIABLE=valeur`
+- Soit depuis le dashboard Heroku de votre application, onglet 
+`Settings` (`Config Vars`).
+
+Une fois ces variables configurées, il vous faudra simplement déployée votre application (git add, commit, push heroku master).
+
+Heorku va détecter que vous utilisez une application développée avec React, et va s'occuper de construire l'application, et de la servir.
+
+Rendez-vous sur l'adresse de votre application pour vous assurer que tout fonctionne comme prévu.
+
+## Ajouter un service (TODO)

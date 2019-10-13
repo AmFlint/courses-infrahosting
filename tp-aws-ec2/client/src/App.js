@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React from 'react';
 import * as axios from 'axios';
 import './App.css';
 
@@ -12,24 +11,48 @@ const fetchMessages = async () => {
 
 class App extends React.Component {
   state = {
-    messages: []
+    messages: [],
+    message: '',
   };
 
-
   componentDidMount() {
-    fetchMessages()
-      .then(messages => this.setState({ messages }))
+    this.fetchMessages();
+  }
+
+  fetchMessages = async () => {
+    try {
+      const messages = await fetchMessages();
+      this.setState({ messages });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  handleSubmit = async (event) => {
+    event.preventDefault();
+    await axios.post(`${BACKEND_URL}/messages`, {message: this.state.message});
+    this.setState({ message: '' });
+    setTimeout(() => this.fetchMessages(), 2000);
   }
 
   render() {
     return (
       <div className="App">
         <header className="App-header">
+          <h1>Create a message:</h1>
+          <form onSubmit={this.handleSubmit}>
+            <input
+              type="text"
+              value={this.state.message}
+              onChange={event => this.setState({ message: event.target.value })}
+            />
+            <button type="submit">Send message</button>
+          </form>
           <h1>Messages:</h1>
           <ul>
             {
               this.state.messages.map(message => (
-                <li>{message.content || ''}</li>
+                <li key={message.id}>{message.content || ''}</li>
               ))
             }
           </ul>

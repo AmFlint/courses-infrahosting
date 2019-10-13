@@ -250,7 +250,13 @@ Ce projet est développé avec `Webpack`, qui sert à compiler le code (`pug` ve
 Voici le rendu final que nous cherchons à atteindre, une fois mis en ligne sur notre instance:
 ![zelda website](./assets/website.png)
 
-**J'ai pris le soin d'archiver les fichiers statiques déjà compilés du website que nous utiliserons dans cet exemple** [à cet endroit](./website.zip).
+[Les fichiers statiques du site en question se trouvent ici](./website), vous devrez donc télécharger ce repo sur votre ordinateur, puis archiver et uploader le contenu de ce dossier sur votre serveur distant:
+```bash
+# La commande zip permet de créer une archive au format ZIP à partir de fichiers/dossiers donnés
+# zip -r <nom-de-larchive-a-crée>.zip <nom-du-dossier-a-archiver>
+zip -r website.zip website
+# L'option "-r" permet d'inclure les fichiers présents dans un dossier. Autrement, seul un dossier vide aurai été archivé.
+```
 
 Nous allons à présent utiliser la commande `scp` pour envoyer les fichier statiques (archivé) du site sur notre instance.
 
@@ -329,7 +335,7 @@ Côté configuration, l'API utilise les variables d'environnement suivantes:
 - `DB_PASSWORD`: Le mot de passe de la base de donnée
 - `DB_NAME`: Nom de la base de donnée
 
-**Petit rappel: Pour créer une variable d'environnement utilisable dans une application, on utilise la commande export**:
+**Petit rappel: Pour créer une variable d'environnement utilisable dans une application, on utilise la commande export, comme par exemple**:
 ```bash
 # Créer la variable d'environnement PORT avec la valeur 3000
 export PORT=3000
@@ -365,6 +371,54 @@ Pour vérifier que notre instance Front-end (déployée dans la première partie
 Dans l'étape suivante, vous allez configurer le serveur de base de données, vous aurez cependant besoins de revenir sur l'instance API pour vous la suite (configuration, et vérifications pour MySQL).
 
 Je vous invite dés à présent à installer le packet `mysql-client` qui vous permettra de tester la connexion à la base de l'instance DB que nous allons configurer.
+
+**L'API que nous venons de lancer sur cette nouvelle instance s'éteindra dès lors que vous quitterez votre session SSH, puisque la tâche (`npm run start`, ou `node server.js`) tourne en `foreground`**. Afin de conserver le serveur node en marche à tout moment nous avons plusieurs solutions:
+- [tmux](https://doc.ubuntu-fr.org/tmux): Créer une session Shell détachée, nous permettant d'exécuter des commandes qui continueront de tourner lorsqu'on détachera la session.
+- [Les services Linux](https://doc.ubuntu-fr.org/creer_un_service_avec_systemd) (Ici, à l'aide de systemd, que nous avons précédemment avec nginx: `systemctl`). Nous allons pouvoir gérer la configuration de notre processus (et des variables d'environnement) pour faire tourner notre API comme un serveur node, à tout moment.
+
+Ici, nous utiliserons `les services Linux avec systemctl`.
+
+Pour déclarer un service, il faut créer un fichier sur notre instance à l'emplacement `/etc/system/system/<nom-du-service>.service`, avec la syntaxe suivante:
+```
+# Configuration principale de notre service
+[Service]
+# Variables d'environnements à utiliser dans le service
+Environment="NOM_DE_MA_VARIABLE=valeur"
+
+# Suites de commande à exécuter pour chacun des états du service:
+# Ici, cette commande sera exécutée lorsqu'on appellera systemctl start mon-service
+ExecStart=<command>
+# La commande suivante sera exécutée lorsqu'on appellera systemctl stop mon-service
+ExecStop=<command>
+```
+
+Grâce à ce système de service, nous allons pouvoir configurer notre API Back-end. Je vous invite donc à créer un nouveau fichier `/etc/systemd/system/backend.service`, et y renseigner les différentes options nécessaires à la configuration de l'API à savoir:
+- Les variables d'environnements avec la clé `Environment` (voir la liste de variables au-dessus).
+- La commande `ExecStart` qui sera chargée de démarrer le serveur node.
+- La commande `Restart=on-failure` qui sera chargée de relancer le service lorsque celui ci rencontrera une erreur.
+
+Une fois ce nouveau fichier crée, vous devrez indiquer à systemd que la configuration a été modifiée (vous venez d'ajouter un service):
+```bash
+# Notifie systemd que la configuration a été modifiée, et qu'il faut donc la prendre en compte
+sudo systemctl daemon-reload
+# Démarrer le nouveau service que vous venez de créer
+sudo systemctl start backend
+# Vérifier l'état du service
+sudo systemctl status backend
+● backend.service
+   Loaded: loaded (/etc/systemd/system/backend.service; static; vendor preset: enabled)
+   Active: active (running) since Sun 2019-10-13 13:51:28 UTC; 11min ago
+ Main PID: 2320 (node)
+    Tasks: 6 (limit: 1152)
+   CGroup: /system.slice/backend.service
+           └─2320 /usr/bin/node /home/ubuntu/server/server.js
+
+Oct 13 13:51:28 ip-172-31-12-191 systemd[1]: Started backend.service.
+Oct 13 13:51:29 ip-172-31-12-191 node[2320]: Listening on http://localhost:3001
+Oct 13 13:51:43 ip-172-31-12-191 node[2320]: GET / 200 4.250 ms - 19
+```
+
+**Notez que si vous modifier plusieurs fois le fichier, il faut relancer `systemctl daemon-reload` pour prendre en compte la dernière version de la configuration**.
 
 ### MySQL
 
@@ -434,3 +488,52 @@ Ensuite, rendez-vous dans votre navigateur sur l'adresse IP de votre instance FR
 ![website finale](./assets/app.png).
 
 Vous pouvez vous amuser à modifier le contenu de votre base de données, vous verrez le résultat se mettre à jours sur votre navigateur.
+
+## Partie Bonus
+
+Dans cette partie, nous allons continuer sur l'infrastructure de la partie précédente:
+- Front
+- Back
+- Base de données
+
+Et nous allons ajouter deux composants (Voir documentation ci-jointe pour l'installation de RabbitMQ):
+- [Un Bus de messages (Ici, RabbitMQ)](https://www.rabbitmq.com/install-debian.html)
+- [Un `Worker` pour le back-end](./server/worker.js).
+
+Nous allons toucher ici à un système distribué, le principe est simple: l'API Back-End, va déléguer une partie de son travail à des `Workers`, qui attendent des évènements, et effectuent des actions en conséquence.
+
+Les évènements sont émis par l'API principale, à travers un bus de messages, ici `RabbitMQ`. Ces messages (évènements) sont en suite redistribués à des `Workers`, qui sont eux-aussi connectés au bus de messages.
+
+Dans le cadre de cet exercice:
+- Le Worker, lors de son initialisation va se connecter à un serveur RabbitMQ pour `écouter` les évènements.
+- Dans l'API, sur une requête `POST /messages` (`body: { message: string }`): dont l'objectif est de créer un nouveau message dans la base de données. L'API créera un évènement dans RabbitMQ, avec le message défini par l'utilisateur.
+- Le worker va ensuite `dépiler` cet évènement pour effectuer une action: `Créer un message en base de données`.
+
+Le worker a donc besoins des variables d'environnement suivantes:
+- `AMQP_URL`: URL vers le service AMQP (contenant aussi user et password)
+- `DB_HOST` (Voir les variables du back-end dans la section API plus haut).
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+
+Le `Worker` peut être démarré avec la commande `npm run worker`.
+
+**Pour cet exercice, vous créerez une nouvelle instance sur laquelle vous installerez RabbitMQ. Le Worker tournera sur la même instance que l'API Back-End**.
+
+Veuillez utiliser les `services Linux` (via SystemD) pour configurer le `Worker`.
+
+Pensez bien au niveau des groupes de sécurité que seul l'instance d'API doit être en mesure d'accéder à l'instance RabbitMQ.
+
+Pour vérifier que tout fonctionne bien:
+- Envoyez une requête curl sur votre API
+	```bash
+	# Sur l'instance API
+	curl -X POST localhost:3001/messages -d '{"message": "testing"}'
+	# Cette commande doit vous répondre:
+	{"message":"testing"}
+	# ce qui veut dire que l'API a bien pris en compte la demande de création d'un message testing, et que l'évènement a été empilé dans RabbitMQ.
+
+	# Vérifiez ensuite que le message a bien été ajouté en base
+	curl localhost:3001/messages
+	```
+- Mettez à jours le Front (J'ai effectué des modifications pour ajouter la fonctionnalité de création de messages), pensez à correctement rebuild le code: `npm run build` (En ayant pensé à définir la variable d'environnement `REACT_APP_BACKEND_URL` pour pointer sur l'adresse de l'API). Connectez vous le front depuis votre navigateur et ajoutez des messages depuis le formulaire.
