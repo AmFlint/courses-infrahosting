@@ -449,7 +449,7 @@ La commande telnet permet de tester la connexion à un port précis sur un hôte
 
 La raison est simple: Le service `MySQL` est configuré pour n'autoriser que la connexion sur l'IP local (127.0.0.1).
 
-Vous allez donc devoir configurer le fichier `/etc/mysql/mysql.conf.d/mysqld.cnf`: Le paramètre `bind-address`. Je vous laisse réfléchir à l'IP qu'il faut utiliser.
+Vous allez donc devoir configurer le fichier `/etc/mysql/mysql.conf.d/mysqld.cnf`: Le paramètre `bind-address`. **Pour autoriser la connexion au service MySQL sur toutes les interfaces réseaux de la machine (Par l'adresse IP publique notamment), il faut utiliser l'adresse `0.0.0.0`). N'oubliez pas de restart votre service mysql avec systemctl restart mysql**.
 
 Une fois MySQL installé sur votre instance, vous pouvez utiliser [ce fichier database.sql](./database.sql) contenant la structure de la base de données à utiliser pour cette exercice. Pour ce faire, vous devrez d'abord uploader le fichier database.sql sur votre instance Database avec la commande `scp` que nous avons vu précédemment.
 
