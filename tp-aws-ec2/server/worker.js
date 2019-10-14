@@ -19,7 +19,12 @@ async function main() {
     const params = [message];
     try {
       const formattedQuery = mysql.format(query, params);
-      const connection = await mysql.createConnection(process.env.JAWSDB_URL || '');
+      const connection = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME
+      });
     
       await connection.query(formattedQuery);
       connection.end();
