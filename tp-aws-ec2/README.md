@@ -427,7 +427,7 @@ Dans un premier temps, nous allons installer `MySQL` sur une nouvelle instance E
 Côté réseau (`Security Groups`):
 - MySQL est exposé par défault sur le port `3306`
 
-Veuillez créer un security group à part, et appelez le `database`, autorisez la connexion sur le port `22` en `SSH` pour pouvoir se connecter puis configurer le serveur par la suite. **Notez que vous devrez mettre à jours le security group database plus tard dans l'exercice pour sécuriser la connexion entre l'API et la base de donnée, ainsi que votre ordinateur et Phpmyadmin**.
+Veuillez créer un security group à part, et appelez le `database`, autorisez la connexion sur le port `22` en `SSH` pour pouvoir se connecter puis configurer le serveur par la suite. **Notez que vous devrez mettre à jours le security group database plus tard dans l'exercice pour sécuriser la connexion entre l'API et la base de donnée**.
 
 Je vous invite à lire les documentations suivantes pour installer les différents composants nécessaires sur votre instance:
 - [MySQL](https://doc.ubuntu-fr.org/mysql)
