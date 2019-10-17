@@ -171,4 +171,73 @@ Heorku va détecter que vous utilisez une application développée avec React, e
 
 Rendez-vous sur l'adresse de votre application pour vous assurer que tout fonctionne comme prévu.
 
-## Ajouter un service (TODO)
+## Ajouter un service
+
+Nous avons vu précédemment qu'il est possible de spécifier des processus spécifiques dans [le fichier Procfile](https://devcenter.heroku.com/articles/procfile) pour démarrer une application.
+
+Pour rappel, dans la partie Back-end, nous avons utilisé le processus `web: npm run start` pour lancer notre API.
+
+Nous pouvons ajouter d'autres types de processus dans ce même fichier Procfile, pour définir d'autres applications.
+
+Dans cette partie nous allons voir comment déployer un second processus, appelé le `worker`.
+
+Descriptif de l'application dans sa globalité:
+Notre application sert simplement à stocker et lire des messages (`id` et `content`).
+Pour ce faire, nous avons besoins de plusieurs composants:
+- Base de données MySQL pour stocker les messages
+- API back-end pour intéragir avec la base
+- Front-End pour afficher les messages sur une interface graphique (site web).
+
+À cela nous allons ajouter:
+- Un `Worker`, chargé d'alléger le travail de l'API.
+- Un bus de données, qui sera chargé de stocker des évènements et des les rediriger vers les `Workers`. **Nous utiliserons [l'addon Heroku CloudAMQP](https://elements.heroku.com/addons/cloudamqp) pour le bus de données**
+
+Pour fonctionner:
+- Le `Worker` va se connecter au bus de données, et lorsqu'il recevra des évènements, il exécutera de la logique particulière (ici, créer un nouveau message en BDD). [Le code du worker est disponible ici, dans le même repo](./app/worker.js)
+- L'API va émettre des évènements dans le bus de données, qui seront redistribués au Worker.
+
+En détail:
+- l'API back-end reçoit des requêtes `POST /messages` avec le body suivant:
+  ```json
+  {
+    "message": "<votre-message>"
+  }
+  ```
+  Elle va ensuite créer un nouvel évènement dans le bus de données (CloudAMQP), contenant le message indiqué par l'utilisateur dans sa requête.
+- Le worker est connecté à ce bus de données (CloudAMQP), lorsqu'il reçoit un évènement, il va créer le message en base de données.
+
+### Les étapes
+
+Dans un premier temps, vous devrez [ajouter l'addon CloudAMQP à votre application (API)](https://elements.heroku.com/addons/cloudamqp) **Pensez à prendre la formule gratuite**.
+
+Lorsque vous ajouterez cette extension à votre Application, une nouvelle variable d'environnement `CLOUDAMQP_URL` sera ajoutée à la configuration de votre App, et sera donc injectée dans votre app.
+
+Dans un second temps, vous devrez créer un nouveau processus sur votre application Back-End (Dans le Procfile).
+
+Si vous [jetez un oeil au package.json du server](./app/package.json), vous verrez le `script worker`, qui démarrera le worker.
+
+Je vous invite donc à ajouter un second process `worker` dans votre Procfile avec la commande en question.
+
+Redéployez votre application, et vérifiez que tout fonctionne comme prévu avec la commande:
+```bash
+curl -X POST <url-de-votre-app>/messages -H 'Content-Type: application/json' -d '{"message": "votre message"}'
+```
+
+Ensuite, retournez sur votre application `Front`, vous devriez voir votre nouveau message dans la liste. Vous pouvez également utiliser le formulaire pour créer un nouveau message sur le front end.
+
+## Pipelines
+
+**CETTE FONCTIONNALITÉ EST PAYANTE !! ASSUREZ VOUS DE VOUS ÊTRES INSCRITS EN TANT QUE GITHUB STUDENT POUR BÉNÉFICIER DE 170$ DE REMISE**. [Lien Heroku - Github Student ici](https://www.heroku.com/github-students/signup).
+
+Les pipelines Heroku sont très utiles puisqu'elles vont nous servir à gérer le cycle de développement/déploiement complet d'une application en proposant les fonctionnalités suivantes:
+- Plusieurs `Stages` (development, staging, production): Déployez vos applications dans plusieurs environnements pour attester de la qualité et du bon fonctionnement du service avant de le rendre disponible à vos utilisateurs finaux.
+- `Review Apps` (Créer une application pour chaque nouvelle Pull Request): À chaque fois que vous allez créer une nouvelle Pull Request sur votre repository Git, une nouvelle application sera déployée sur Heroku pour permettre à vos collègues de `Review` les fonctionnalités que vous développez.
+- `Heroku CI`: Exécutez vos tests sur chaque modification du code source, pour assurer la qualité du service au fur et à mesure du développement.
+
+### Les étapes
+
+- Créer une nouvelle Pipeline
+- Ajouter une application à la Pipeline => Vos applications dans le stage `staging`.
+- Ajouter une nouvelle application au stage de `production` (Créez en une nouvelle)
+- Vous pouvez maintenant `Promote` votre application de staging en `production`.
+- Pensez à installer les add-ons sur votre application de production, chaque stage doit avoir sa propre base de données par exemple.
