@@ -36,14 +36,9 @@ Avant de créer notre instance et de nous connecter dessus, nous allons avoir be
 ### Configuration de la clé (Pour se connecter sur le serveur à distance):
 
 Pour pouvoir se connecter à distance, on peut utiliser le protocole `SSH`, pour ce faire il va nous falloir générer une clé.
-Chaque Provider Cloud propose une stratégie différente pour s'authentifier au serveur via SSH:
-- En temps normal, on aura pu générer une clé avec la commande suivante:
-```bash
-ssh-keygen -t rsa -b 4096
-```
-- Avec AWS, le mécanisme est le suivant: `Les sont générés et stockés par Amazon, dans l'onglet "Paires de clés" de la console EC2, on génère une clé sur la console, on télécharge en local une des clés. On va ensuite indiquer à l'instance que l'on souhaite utiliser cette clé-ci pour s'authentifier`.
+Chaque Provider Cloud propose une stratégie différente pour s'authentifier au serveur via SSH, avec AWS on va pouvoir générer notre clé sur notre ordinateur, puis l'uploader dans leur console, pour pouvoir se connecter à nos serveurs par la suite.
 
-Allez donc dans la section `paire de clé`, et créez en une nouvelle, appelez-la `tp-aws`, et téléchargez la sur votre ordinateur.
+Allez donc dans la section `paire de clé`, et cliquez sur le bouton `importer une paire de clé` (ou `Import key pair` en anglais). Uploader votre fichier `{nom-de-votre-clé.pub}` il s'agit de votre clé publique.
 
 ### Configuration réseau
 
@@ -54,8 +49,6 @@ Typiquement, pour laisser l'accès à un site Web (`HTTP` sur les ports 80 et 44
 Voici donc les instructions:
 - Créez un nouveau groupe de sécurité, appelez-le `tp-aws`
 - Le port 22 doit être accessible (pour le SSH)
-- Le port 80 doit être accessible, puisque nous allons installer un serveur web par la suite.
-
 
 ### Création de l'instance
 
@@ -68,11 +61,11 @@ Maintenant que nous avons configuré les différentes ressources qui vont nous p
 - L'instance devrai à présent être en cours de création, nous allons pouvoir nous y connecté, une fois l'adresse IP assignée. Veuillez Copier l'adresse IP de votre instance:
   ![console ec2](./assets/ec2-create.png)
 
-  ### Connexion à l'instance
+### Connexion à l'instance
 
-  Vous allez maintenant vous connecter à l'instance depuis votre machine.
+Vous allez maintenant vous connecter à l'instance depuis votre machine.
 
-  Pour cela, vous devez au préalable avoir téléchargé la clé générée par `AWS`.
+Pour cela, vous devez au préalable avoir téléchargé la clé générée par `AWS`.
 
 Veuillez dans un premier temps localiser la clé dans votre système (dans les téléchargements à priori).
 

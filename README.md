@@ -23,6 +23,7 @@ L'idée est de montrer aux étudiants différents outils, apportant chacun ses a
 
 - [Déployer une application sur des instances AWS EC2, from scratch](./tp-aws-ec2)
 - [Déployer une application sur l'offre PAAS d'Heroku](./tp-heroku)
+- [Déployer une application conteneurisée sur AWS EC2](./tp-cloud-docker)
 
 ## Auteur
 
