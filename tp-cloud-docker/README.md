@@ -293,4 +293,59 @@ docker push amasselot/nginx:alpine
   docker push amasselot/tp-backend:latest
   ```
 
-<!-- ### Configurer l'application avec docker-compose -->
+### Configurer l'application avec docker-compose
+
+Maintenant que vous avez construit et déployés vos images Docker sur la registry de Docker Hub, nous allons configurer le fichier docker-compose pour exécuter les différents containers dans les bonnes conditions.
+
+L'objectif de cet exercice n'est pas de vous faire passer beaucoup de temps sur la configuration d'un fichier docker-compose.yml, car nous l'avons déjà vu pendant la formation Docker.
+
+C'est pourquoi je vous conseil vivement de [regarder la configuration du fichier docker-compose produit pour le TP docker sur la même application](https://github.com/AmFlint/courses-docker/tree/master/tp-compose-dev/docker-compose.yml). Vous pouvez partir de ce fichier, et d'effectuer différentes modifications pour utiliser vos applications back-end:
+- reconfigurer le service `api`:
+  - retirer le volume, votre code est construit dans votre image
+  - retirer la commande, elle est spécifiée dans votre image docker
+  - modifier l'image utilisée pour favoriser la votre
+- ajouter un service `front`:
+  - Utiliser l'image que vous avez construit pour le front-end
+  - linker le port
+
+
+Une fois votre fichier docker-compose finalisé, vous devrez uploader le fichier sur votre serveur avec la commande `scp`.
+
+scp` fonctionne de la façon suivante:
+```bash
+# Commande générique
+scp -i chemin/vers/clé /chemin/vers/fichier <utilisateur>@<hôte>:/chemin/sur/instance
+
+# La commande suivante est chargée d'uploader un fichier docker-compose.yml
+# sur la machine avec l'IP 51.121.23.42 en tant qu'utilisateur ubuntu
+# à l'emplacement /home/ubuntu/docker-compose.yml
+# en utilisant la clé stockée à ~/.ssh/my_key.pem
+scp -i ~/.ssh/my_key.pem ./docker-compose.yml root@51.121.23.42:/home/ubuntu/docker-compose.yml
+```
+
+Vous pourrez ensuite vous connecter à votre machine, pour exécuter docker-compose.
+
+**N'oubliez pas de mettre à jours vos Groupes de Sécurité pour autoriser le traffic entrant sur les services Front et API**.
+
+Vérifiez ensuite que tout fonctionne correctement en ouvrant votre navigateur sur l'adresse IP de votre serveur, sur le port sur lequel votre application front-end est déployée.
+
+### Automatiser le tout avec Ansible
+
+[La partie cours concernant Ansible se trouve ici, dans le dossier d'exemple fournis dans ce support](./ansible).
+
+Maintenant que vous avez appris à travailler manuellement sur une instance AWS pour:
+- Installer des librairies système (docker et docker-compose)
+- Construire et push des images docker
+- Configurer un fichier docker-compose
+- Uploader le fichier docker-compose.yml
+- Lancer le fichier docker-compose
+- Importer la base de données
+
+Nous allons voir comment automatiser le processus, pour déployer au besoins votre infrastructure sur n'importe quel serveur, à tout moment.
+
+Nous utiliserons les modules:
+- copy: Uploader votre code
+- template: Utiliser des variables ansible dans des fichiers de configuration (ici, `docker-compose.yml`).
+- [docker_login](https://docs.ansible.com/ansible/latest/modules/docker_login_module.html) pour se connecter à une registry avec vos identifiants docker hub
+- [docker_image](https://docs.ansible.com/ansible/latest/modules/docker_image_module.html): Créer et push des images docker
+- [docker_service](https://docs.ansible.com/ansible/latest/modules/docker_service_module.html): Exécuter des fichiers docker-compose

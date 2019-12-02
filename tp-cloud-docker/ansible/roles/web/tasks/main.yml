@@ -1,0 +1,26 @@
+---
+
+- name: Install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+    state: present
+  become: yes
+
+- name: Copy Website
+  copy:
+    src: files/website/
+    dest: "{{ web_server_root }}"
+  become: yes
+
+- name: Copy Nginx configuration file
+  template:
+    src: templates/server.conf.j2
+    dest: "/etc/nginx/sites-enabled/{{ web_server_file }}"
+  become: yes
+
+- name: Start service nginx
+  service:
+    name: nginx
+    state: restarted
+  become: yes

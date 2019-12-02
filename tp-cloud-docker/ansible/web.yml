@@ -1,0 +1,13 @@
+---
+  # file: apicontroller.yml
+  # This playbook deploy registries apicontroller
+
+- name: Install web service
+  hosts: [web]
+  # gather_facts: no
+  # pre_tasks:
+  #   - name: 'install python2'
+  #     raw: sudo apt update && sudo apt-get -y install python
+
+  roles:
+  - { role: web, tags: ["web"] }
