@@ -1,0 +1,28 @@
+application_docker_registry: rg.fr-par.scw.cloud/antoine
+application_docker_username: antoine
+application_docker_password: 
+
+application_client_image: "{{ application_docker_registry }}/tp-client"
+application_client_tag: "v2"
+
+application_server_image: "{{ application_docker_registry }}/tp-server"
+application_server_tag: "v4.0.2"
+
+application_server_endpoint: http://163.172.154.254:3000
+
+# RabbitMQ Configuration
+
+application_rabbit_user: demo
+application_rabbit_password: demo
+application_rabbit_host: rabbitmq
+
+application_amqp_url: "amqp://{{ application_rabbit_user }}:{{ application_rabbit_password }}@{{ application_rabbit_host }}:5672/"
+
+# Database configuration
+
+application_db_host: database
+application_db_root_password: myrootpassword
+application_db_name: mydatabase
+application_db_user: test
+application_db_password: test
+

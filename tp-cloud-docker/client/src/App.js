@@ -48,7 +48,7 @@ class App extends React.Component {
             />
             <button type="submit">Send message</button>
           </form>
-          <h1>Messages:</h1>
+          <h1>Messages (updated and deployed with Ansible):</h1>
           <ul>
             {
               this.state.messages.map(message => (

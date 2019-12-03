@@ -8,7 +8,7 @@ const app = express();
 const amqpLib = require('amqplib')
 
 const q = 'messages';
-const amqpUrl = process.env.CLOUDAMQP_URL || "amqp://localhost";
+const amqpUrl = process.env.AMQP_URL || "amqp://localhost";
 
 app.use(cors())
 app.use(logger('dev'));

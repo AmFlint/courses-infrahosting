@@ -1,0 +1,4 @@
+application_client_port: "80"
+application_server_port: "3000"
+application_phm_port: "8080"
+application_db_datadir: /opt/app/data-dir

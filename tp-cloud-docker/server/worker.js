@@ -4,8 +4,34 @@ const mysql = require('promise-mysql');
 const url = process.env.AMQP_URL || "amqp://localhost";
 const q = 'messages';
 
+async function sleep(duration) {
+  return new Promise((res, rej) => {
+    setTimeout(() => res(), duration);
+  })
+}
+
 async function main() {
-  const connection = await amqpLib.connect(url);
+  let connection;
+  const maxRetries = 50;
+  const retryInterval = 500;
+  let retryCount = 0;
+
+  do {
+    try {
+      connection = await amqpLib.connect(url);
+    } catch (err) {
+      console.log(`Got error ${err}, waiting ${retryInterval}ms, ${retryCount} times`)
+      await sleep(retryInterval);
+    }
+    retryCount++;
+  } while (!connection || retryCount <= maxRetries)
+
+  if (!connection && retryCount > maxRetries) {
+    throw new Error('Did not connect to AMQP');
+  }
+
+  console.log('Connected to AMQP');
+
   const channel = await connection.createChannel();
   // Create message from Rabbit MQ
   channel.assertQueue(q);

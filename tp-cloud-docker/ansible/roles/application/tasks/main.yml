@@ -1,0 +1,57 @@
+---
+
+- name: Create Application directory
+  file:
+    path: /opt/app
+    state: directory
+
+- name: Copy Server application
+  copy:
+    src: ../../../server
+    dest: /opt/app
+
+- name: Copy Client Application
+  copy:
+    src: ../../../client
+    dest: /opt/app
+
+- name: Login to Docker registry
+  docker_login:
+    registry: "{{ application_docker_registry }}"
+    username: "{{ application_docker_username }}"
+    password: "{{ application_docker_password }}"
+
+- name: Build and push docker image client
+  docker_image:
+    build:
+      path: /opt/app/client
+      args:
+        REACT_APP_BACKEND_URL: "{{ application_server_endpoint }}"
+    name: "{{ application_client_image }}"
+    tag: "{{ application_client_tag }}"
+    push: yes
+    source: build
+  notify: restart docker stack
+  tags: ["build", "redeploy"]
+
+- name: Build and push docker image server
+  docker_image:
+    build:
+      path: /opt/app/server
+    name: "{{ application_server_image }}"
+    tag: "{{ application_server_tag }}"
+    push: yes
+    source: build
+  notify: restart docker stack
+  tags: ["build", "redeploy"]
+
+- name: Copy docker-compose configuration file
+  template:
+    src: templates/docker-compose.yml
+    dest: /opt/app/docker-compose.yml
+  notify: restart docker stack
+
+# - name: Run docker compose application stack
+#   docker_compose:
+#     project_src: /opt/app
+#     state: present

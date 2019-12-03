@@ -1,0 +1,15 @@
+---
+  # file: apicontroller.yml
+  # This playbook deploy registries apicontroller
+
+- name: Install common libs and packages
+  hosts: application
+  gather_facts: no
+  roles:
+    - { role: common, tags: ["common"] }
+    - { role: geerlingguy.docker, tags: ["docker"] }
+
+- name: Install web service
+  hosts: application
+  roles:
+  - { role: application, tags: ["application"] }

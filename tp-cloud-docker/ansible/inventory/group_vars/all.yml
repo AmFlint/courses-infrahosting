@@ -1,0 +1,4 @@
+docker_users:
+  - ubuntu
+
+docker_install_compose: true

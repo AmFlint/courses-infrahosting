@@ -1,0 +1,24 @@
+---
+
+# Install Python 2, as it is needed to execute ansible modules on remote hosts
+- name: 'install python2'
+  raw: apt update && apt-get -y install python
+  tags: ["install"]
+
+- name: Gather facts
+  setup:
+
+- name: install packages
+  apt:
+    pkg:
+      - python-setuptools
+      - python-pip
+      - docker-compose
+    state: present
+    update_cache: yes
+
+# Install PIP Dependencies
+- name: Install pip dependencies
+  pip:
+    name:
+      - docker

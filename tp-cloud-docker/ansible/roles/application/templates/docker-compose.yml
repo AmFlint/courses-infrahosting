@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  database:
+    image: mysql:5.6
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{ application_db_root_password }}"
+      MYSQL_DATABASE: "{{ application_db_name }}"
+      MYSQL_USER: "{{ application_db_user }}"
+      MYSQL_PASSWORD: "{{ application_db_password }}"
+    volumes:
+      - "{{ application_db_datadir }}:/var/lib/mysql"
+    networks:
+      - database
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: "{{ application_rabbit_user }}"
+      RABBITMQ_DEFAULT_PASS: "{{ application_rabbit_password }}"
+    networks:
+      - amqp
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.9
+    ports:
+      - "{{ application_phm_port }}:80"
+    networks:
+      - database
+    environment:
+      PMA_HOST: "{{ application_db_host }}"
+      PMA_USER: "{{ application_db_user }}"
+      PMA_PASSWORD: "{{ application_db_password }}"
+
+  worker:
+    image: "{{ application_server_image }}:{{ application_server_tag }}"
+    command: node worker.js
+    environment:
+      AMQP_URL: "{{ application_amqp_url }}"
+      DB_HOST: "{{ application_db_host }}"
+      DB_USER: "{{ application_db_user }}"
+      DB_PASSWORD: "{{ application_db_password }}"
+      DB_NAME: "{{ application_db_name }}"
+    depends_on:
+      - rabbitmq
+      - database
+    networks:
+      - amqp
+      - database
+
+  server:
+    image: "{{ application_server_image }}:{{ application_server_tag }}"
+    ports:
+      - "{{ application_server_port }}:3000"
+    environment:
+      AMQP_URL: "{{ application_amqp_url }}"
+      DB_HOST: "{{ application_db_host }}"
+      DB_USER: "{{ application_db_user }}"
+      DB_PASSWORD: "{{ application_db_password }}"
+      DB_NAME: "{{ application_db_name }}"
+    depends_on:
+      - rabbitmq
+      - database
+    networks:
+      - database
+      - amqp
+
+  client:
+    image: "{{ application_client_image }}:{{ application_client_tag }}"
+    ports:
+      - "{{ application_client_port }}:80"
+    depends_on:
+      - server
+
+networks:
+  database:
+  amqp:
+
