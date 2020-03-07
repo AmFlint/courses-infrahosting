@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  database:
+    image: mysql:5.6
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cicd
+      MYSQL_USER: cicd
+      MYSQL_PASSWORD: cicd
+    volumes:
+      - ./data:/var/lib/mysql"
+    networks:
+      - database
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: "cicd"
+      RABBITMQ_DEFAULT_PASS: "cicd"
+    networks:
+      - amqp
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.9
+    ports:
+      - "8080:80"
+    networks:
+      - database
+    environment:
+      PMA_HOST: "database"
+      PMA_USER: "cicd"
+      PMA_PASSWORD: "cicd"
+
+  worker:
+    image: "node:alpine"
+    command: node worker.js
+    working_dir: /home/app
+    volumes: 
+      - ./:/home/app
+    environment:
+      AMQP_URL: "amqp://cicd:cicd@rabbitmq:5672/"
+      DB_HOST: "database"
+      DB_USER: "cicd"
+      DB_PASSWORD: "cicd"
+      DB_NAME: "cicd"
+    depends_on:
+      - rabbitmq
+      - database
+    networks:
+      - amqp
+      - database
+
+  server:
+    image: "node:alpine"
+    command: node server.js
+    working_dir: /home/app
+    volumes: 
+      - ./:/home/app
+    ports:
+      - "3000:3000"
+    environment:
+      AMQP_URL: "amqp://cicd:cicd@rabbitmq:5672/"
+      DB_HOST: "database"
+      DB_USER: "cicd"
+      DB_PASSWORD: "cicd"
+      DB_NAME: "cicd"
+    depends_on:
+      - rabbitmq
+      - database
+    networks:
+      - database
+      - amqp
+
+networks:
+  database:
+  amqp:
+
