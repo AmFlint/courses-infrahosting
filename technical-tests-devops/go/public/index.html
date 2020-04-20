@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golang click counts</title>
+</head>
+<body>
+  <h1>You clicked: <span id="count">0</span> times</h1>
+  <button id="click">Click me</button>
+  <script>
+    const countElement = document.querySelector('#count');
+    const button = document.querySelector('#click');
+
+    fetch('/api/clicks')
+      .then(res => res.json())
+      .then(({ count }) => renderCount(count))
+      .catch(console.log);
+
+    button.addEventListener('click', function() {
+      fetch('/api/clicks', { method: 'POST' })
+        .then(response => response.json())
+        .then(({ count }) => renderCount(count))
+        .catch(console.log);
+    });
+
+    function renderCount(count) {
+      if (!count) return;
+      countElement.textContent = `${count}`;
+    }
+  </script>
+</body>
+</html>
