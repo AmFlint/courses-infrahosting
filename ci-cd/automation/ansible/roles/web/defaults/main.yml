@@ -1,0 +1,8 @@
+web_user: website
+web_user_shell: /bin/bash
+
+web_port: 80
+web_server_name: _
+web_directory: "/home/{{ web_user }}/zelda"
+
+web_install_ssh_key: false

@@ -1,0 +1,6 @@
+---
+
+- name: Install WebApp
+  hosts: [web]
+  roles:
+    - { role: web, tags: ["web"] }
