@@ -2,5 +2,17 @@ version: '3'
 services:
   redis:
     image: redis
+    networks:
+      - webapp
+
+  webapp:
+    image: test:latest
+    environment:
+      REDIS_HOST: redis
+    networks:
+      - webapp
     ports:
-      - 6379:6379
+      - 8080:8080
+
+networks:
+  webapp:
