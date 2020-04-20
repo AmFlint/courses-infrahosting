@@ -1,0 +1,70 @@
+---
+- name: Create Group for website
+  group:
+    name: "{{ web_user }}"
+    state: present
+  become: yes
+  tags: ["web_install"]
+
+- name: Create user for website
+  user:
+    shell: "{{ web_user_shell }}"
+    name: "{{ web_user }}"
+    group: "{{ web_user }}"
+    state: present
+  become: yes
+  tags: ["web_install", "web_configure"]
+
+- name: Create SSH directory for website user
+  file:
+    state: "{{ item.state }}"
+    path: "{{ item.path }}"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+  become: yes
+  loop:
+    - { path: "/home/{{ web_user }}/.ssh", state: "directory" }
+    - { path: "/home/{{ web_user }}/.ssh/authorized_keys", state: "touch" }
+  tags: ["web_install", "web_configure"]
+
+- name: Add SSH public key to website user
+  authorized_key:
+    user: "{{ web_user }}"
+    state: present
+    key: "{{ web_public_key }}"
+  become: yes
+  when: web_install_ssh_key and web_public_key is defined
+  tags: ["web_install", "web_configure"]
+
+- name: Create Website directory
+  file:
+    path: "{{ web_directory }}"
+    state: directory
+    group: "{{ web_user }}"
+    owner: "{{ web_user }}"
+  become: yes
+  tags: ["web_install"]
+
+- name: Install NGINX
+  apt:
+    update_cache: yes
+    name: nginx
+    state: present
+  become: yes
+  tags: ["web_install"]
+
+- name: Configure NGINX default vhost
+  template:
+    src: templates/default.j2
+    dest: /etc/nginx/sites-enabled/default
+  become: yes
+  notify: restart nginx
+  tags: ["web_install", "web_configure"]
+
+- name: Upload website
+  copy:
+    src: files/website/
+    dest: "{{ web_directory }}/"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+  tags: ["web_deploy"]

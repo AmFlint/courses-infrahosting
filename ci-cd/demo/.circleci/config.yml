@@ -1,0 +1,113 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  unit-tests:
+    docker:
+      - image:  circleci/golang:1.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: go test .
+  e2e-tests:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /home/circleci/repo/artifacts
+      - run:
+          name: Load Docker image
+          command: docker load -i artifacts/image
+      - run:
+          name: Run API in background
+          command: |
+            docker network create testing
+            docker run --network testing --name api -d -p 8080:8080 "${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}"
+            docker run --network testing \
+            appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://api:8080/greetings
+      - run:
+          name: Run tests
+          command: |
+            docker run --entrypoint "" \
+            --network testing \
+            -e TEST_ENDPOINT=http://api:8080/greetings \
+            "${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}" \
+            go test ./tests/...
+  build:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Create artifacts directory
+          command: mkdir -p ~/repo/artifacts
+      - run:
+          name: Build image
+          command: docker build -t "${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}" .
+      - run:
+          name: Save image to archive file
+          command: docker save "${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}" -o artifacts/image
+      - persist_to_workspace:
+          root: artifacts
+          paths:
+            - image
+  push:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /home/circleci/repo/artifacts
+      - run:
+          name: Load Docker image
+          command: docker load -i artifacts/image
+      - run:
+          name: Login to docker registry
+          command: docker login $REGISTRY_ENDPOINT --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD
+      - run:
+          name: Push Docker image
+          command: docker push "${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}"
+  deploy:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "00:59:75:e0:30:7c:67:60:46:7d:ce:78:c6:6b:62:9d"
+      - run: mkdir -p ~/.ssh
+      - run: ssh-keyscan 163.172.6.169 >> ~/.ssh/known_hosts
+      - run: ssh flint@163.172.6.169 -t "docker login $REGISTRY_ENDPOINT --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD"
+      - run: ssh flint@163.172.6.169 -t "docker rm -f my-server"
+      - run: ssh flint@163.172.6.169 -t "docker run --name my-server -d -p 8080:8080 ${REGISTRY_ENDPOINT}:${CIRCLE_SHA1}"
+      
+      # - run: scp server flint@163.172.6.169:/home/flint/my-server
+      # - run: ssh flint@163.172.6.169 -t systemctl restart my-server
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - build
+      - unit-tests
+      - e2e-tests:
+          requires:
+            - build
+      - push:
+          requires:
+            - unit-tests
+            - e2e-tests
+            - build
+      - deploy:
+          requires:
+            - push
+            - e2e-tests
+            - unit-tests

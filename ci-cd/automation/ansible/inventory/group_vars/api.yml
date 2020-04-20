@@ -1,0 +1,3 @@
+api_database_password: "{{ database_password }}"
+
+api_docker_image: "{{ docker_username }}"
