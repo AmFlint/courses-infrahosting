@@ -11,16 +11,16 @@ import (
 )
 
 var (
-	redisHost string
-	redisPort string
+	redisHost       string
+	redisPort       string
 	applicationHost string
 	applicationPort string
-	ds *datastore.Datastore
+	ds              *datastore.Datastore
 )
 
 const (
-	defaultRedisHost = "localhost"
-	defaultRedisPort = "6379"
+	defaultRedisHost       = "localhost"
+	defaultRedisPort       = "6379"
 	defaultApplicationHost = "0.0.0.0"
 	defaultApplicationPort = "8080"
 )
@@ -28,7 +28,7 @@ const (
 func init() {
 	redisHost = os.Getenv("REDIS_HOST")
 	redisPort = os.Getenv("REDIS_PORT")
-	
+
 	if redisHost == "" {
 		redisHost = defaultRedisHost
 	}

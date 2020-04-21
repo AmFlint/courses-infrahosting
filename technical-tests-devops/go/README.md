@@ -23,3 +23,7 @@ For the last part, you will have to set up a CI/CD Pipelines to complete the fol
 - You can build the application with the command `go build main.go`
 - This application uses Redis as a back-end to store the data (click counter), you will need to set-up redis for that purpose, in production, you will have to use the `AWS ElastiCache product` with the redis driver to create a ElastiCache redis instance, fully managed by AWS.
 - This application runs on port `8080` by default
+
+
+schema Scaling:
+![scaling](./assets/scaling.jpg)
