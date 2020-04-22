@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/Users/antoinemasselot/anaconda3/bin/python3
 
 '''
 EC2 external inventory script

@@ -1,0 +1,9 @@
+version: '3'
+services:
+  webapp:
+    image: "{{ application_docker_image }}:{{ application_docker_tag }}"
+    environment:
+      REDIS_HOST: "{{ application_redis_host }}"
+      REDIS_PORT: "{{ application_redis_port }}"
+    ports:
+      - "{{ application_port }}:8080"

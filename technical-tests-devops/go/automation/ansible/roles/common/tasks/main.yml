@@ -1,0 +1,19 @@
+---
+
+- name: Install common packages
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg2
+      - python3-pip
+    update_cache: yes
+    state: present
+
+- name: Install pip dependencies
+  pip:
+    name:
+      - docker
+      - docker-compose
+    executable: pip3
+

@@ -1,0 +1,11 @@
+application_user: ubuntu
+application_group: "{{ application_user }}"
+application_directory: "/home/{{ application_user }}/webapp"
+
+application_docker_image: amasselot/techtest
+application_docker_tag: latest
+
+application_redis_host: ""
+application_redis_port: 6379
+
+application_port: 8080

@@ -1,0 +1,14 @@
+---
+
+- name: Install Common packages
+  hosts: [tag_stage_production]
+  become: yes
+  roles:
+    - { role: common, tags: ['common'] }
+    - { role: geerlingguy.docker, tags: ['docker'] }
+
+
+- name: Install application stack
+  hosts: tag_component_application:&tag_stage_production
+  roles:
+    - { role: application, tags: ['application'] }
